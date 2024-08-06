@@ -1,7 +1,6 @@
 """
 Download photos from Amazon Photos via API
 """
-# TODO make a local git repo
 import logging
 import socket
 from amazon_photos import AmazonPhotos
@@ -28,9 +27,12 @@ def create_amazon_photos_instance():
     """
     try:
         # Verify that the hostnames can be resolved
-        resolve_hostname('amazon.com')
-        resolve_hostname('drive.amazonaws.com')
+        if not resolve_hostname('amazon.com'):
+            raise Exception("Failed to resolve amazon.com")
+        if not resolve_hostname('drive.amazonaws.com'):
+            raise Exception("Failed to resolve drive.amazonaws.com")
 
+        # TODO The error is occuring inside this class - need to get visibility of what's happening
         ap = AmazonPhotos(
             cookies={
                 'ubid-acbuk' : "261-8674950-0497261",
@@ -52,22 +54,22 @@ def main():
         logger.error("AmazonPhotos instance creation failed")
         return
 
-    # get current usage stats
-    ap.usage()
-
-    # get entire Amazon Photos library
-    print("get entire Amazon library")
-
-    nodes = ap.query("type:(PHOTOS OR VIDEOS)")
-
-    num_nodes = len(nodes)
-    print("{:0d} nodes".format(num_nodes))
-
-    # sample first 10 nodes
-    node_ids = nodes.id[:10]
-    print(node_ids)
-
     try:
+        # get current usage stats
+        ap.usage()
+
+        # get entire Amazon Photos library
+        print("get entire Amazon library")
+
+        nodes = ap.query("type:(PHOTOS OR VIDEOS)")
+
+        num_nodes = len(nodes)
+        print("{:0d} nodes".format(num_nodes))
+
+        # sample first 10 nodes
+        node_ids = nodes.id[:10]
+        print(node_ids)
+
         # Example function to get folder structure (you need to replace this with actual function calls)
         folder_structure = ap.get_folder_structure()
         logger.info("Folder structure: %s", folder_structure)
@@ -75,7 +77,6 @@ def main():
         logger.error("AttributeError: %s", e)
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}", exc_info=True)
-
 
 if __name__ == "__main__":
     main()
